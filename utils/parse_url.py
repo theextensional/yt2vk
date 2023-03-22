@@ -3,40 +3,22 @@ import re
 
 def parse_youtube_url(url_or_id):
     # Определение шаблонов URL для каналов, видео и пользователей
-    channel_id_pattern = re.compile(r"^[a-zA-Z0-9_-]{24}$")
-    channel_url_pattern = re.compile(r"(?:(?:https?:)?//)?(?:www\.)?youtube.com/channel/([a-zA-Z0-9_-]+)")
-    video_url_pattern = re.compile(r"(?:(?:https?:)?//)?(?:www\.)?youtube.com/watch\?v=([a-zA-Z0-9_-]+)")
-    video_id_pattern = re.compile(r"^[a-zA-Z0-9_-]{11}$")
-    channel_name_pattern = re.compile(r"(?:(?:https?:)?//)?(?:www\.)?youtube.com/c/([^/\s?]+)")
-    user_pattern = re.compile(r"^(?:https?:\/\/(?:www\.)?youtube\.com\/)?(?:@)?([a-zA-Z0-9_-]+)$")
+    patterns = [
+        (re.compile(r"(?:(?:https?:)?//)?(?:www\.)?youtube.com/channel/([a-zA-Z0-9_-]+)"), "channel"),
+        (re.compile(r"(?:(?:https?:)?//)?(?:www\.)?youtube.com/watch\?v=([a-zA-Z0-9_-]+)"), "video"),
+        (re.compile(r"^[a-zA-Z0-9_-]{11}$"), "video"),
+        (re.compile(r"(?:(?:https?:)?//)?(?:www\.)?youtube.com/c/([^/\s?]+)"), "channel_name"),
+        (re.compile(r"^(?:https?:\/\/(?:www\.)?youtube\.com\/)?(?:@)?([a-zA-Z0-9_-]+)$"), "user_name"),
+        (re.compile(r"^[a-zA-Z0-9_-]{24}$"), "channel_id"),
+    ]
 
     # Поиск совпадений в URL-адресе или ID
-    channel_id_match = channel_id_pattern.search(url_or_id)
-    channel_url_match = channel_url_pattern.search(url_or_id)
-    video_url_match = video_url_pattern.search(url_or_id)
-    video_id_match = video_id_pattern.search(url_or_id)
-    channel_name_match = channel_name_pattern.search(url_or_id)
-    user_match = user_pattern.search(url_or_id)
+    for pattern, data_type in patterns:
+        match = pattern.search(url_or_id)
+        if match:
+            return data_type, match.group(1)
 
-    # Определение типа данных и вывод информации
-    if channel_id_match:
-        return "channel_id", url_or_id
-    elif channel_url_match:
-        channel_id = channel_url_match.group(1)
-        return "channel", channel_id
-    elif video_url_match:
-        video_id = video_url_match.group(1)
-        return "video", video_id
-    elif video_id_match:
-        return "video", url_or_id
-    elif channel_name_match:
-        channel_name = channel_name_match.group(1)
-        return "channel_name", channel_name
-    elif user_match:
-        user_name = user_match.group(1)
-        return "user_name", user_name
-    else:
-        return None, None
+    return None, None
 
 
 if __name__ == "__main__":
