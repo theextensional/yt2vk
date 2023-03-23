@@ -1,9 +1,11 @@
+import logging
 import os
+from typing import Tuple, Union
 
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from parse_url import parse_youtube_url
+from parse_url import InvalidYoutubeUrlException, parse_youtube_url
 
 load_dotenv()
 
@@ -11,55 +13,48 @@ API_KEY = os.getenv("API_KEY")
 YT = build("youtube", "v3", developerKey=API_KEY)
 
 
-def get_channel_info(url: str) -> tuple[str, str] | None:
-    data_type, data = parse_youtube_url(url)
+def get_channel_id_and_name(url: str) -> Union[Tuple[str, str], None]:
+    try:
+        data_type, data = parse_youtube_url(url)
+    except InvalidYoutubeUrlException:
+        logging.warning(f"Некорректный URL для YouTube: {url}")
+        return None
 
     try:
         if data_type == "channel_id":
             response = YT.channels().list(part="snippet", id=data).execute()
-            if response:
-                channel_name = response["items"][0]["snippet"]["title"]
-                return data, channel_name
-            else:
-                return None
+            channel_id = data
         elif data_type == "user_name":
             response = YT.search().list(type="channel", part="snippet", maxResults=1, q=data).execute()
-            if response and "items" in response and len(response["items"]) > 0:
-                channel_id = response["items"][0]["id"]["channelId"]
-                response = YT.channels().list(part="snippet", id=channel_id).execute()
-                if response:
-                    channel_name = response["items"][0]["snippet"]["title"]
-                    return channel_id, channel_name
-                else:
-                    return None
-            else:
-                return None
+            channel_id = response.get("items", [{}])[0].get("id", {}).get("channelId")
         elif data_type == "video_id":
             response = YT.videos().list(part="snippet", id=data).execute()
-            if response and "items" in response and len(response["items"]) > 0:
-                channel_id = response["items"][0]["snippet"]["channelId"]
-                response = YT.channels().list(part="snippet", id=channel_id).execute()
-                if response:
-                    channel_name = response["items"][0]["snippet"]["title"]
-                    return channel_id, channel_name
-                else:
-                    return None
-            else:
-                return None
+            channel_id = response.get("items", [{}])[0].get("snippet", {}).get("channelId")
         else:
             return None
+
+        channel_data = (
+            YT.channels().list(part="snippet", id=channel_id).execute().get("items", [{}])[0].get("snippet", {})
+        )
+        channel_name = channel_data.get("title", "")
+        return channel_name, channel_id
     except HttpError as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
         return None
 
 
 if __name__ == "__main__":
-    url = "https://www.youtube.com/@theextensional"
-    url = "https://www.youtube.com/channel/UCrV_cFYbUwpjSOPVJOjTufg"
-    url = "https://youtu.be/dQw4w9WgXcQ"
-    channel_info = get_channel_info(url)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+    urls = [
+        "https://www.youtube.com/@theextensional",
+        "https://www.youtube.com/channel/UCrV_cFYbUwpjSOPVJOjTufg",
+        "https://youtu.be/dQw4w9WgXcQ",
+    ]
 
-    if channel_info:
-        print(f"Канал: {channel_info}")
-    else:
-        print("Произошла ошибка при запросе.")
+    for url in urls:
+        channel_info = get_channel_id_and_name(url)
+
+        if channel_info:
+            logging.info(f"Канал: {channel_info[0]}, id: {channel_info[1]}")
+        else:
+            logging.warning("Произошла ошибка при запросе.")
