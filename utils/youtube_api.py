@@ -33,27 +33,20 @@ def get_channel_id_and_name(url: str) -> tuple[str, str] | None:
         logging.warning(f"Некорректный URL для YouTube: {url}")
         return None
 
-    try:
-        if data[0] == "channel_id":
-            response = YT.channels().list(part="snippet", id=data[1]).execute()
-            channel_id = data[1]
-        elif data[0] == "user_name" or data[0] == "channel_name":
-            response = YT.search().list(type="channel", part="snippet", maxResults=1, q=data[1]).execute()
-            channel_id = response.get("items", [{}])[0].get("id", {}).get("channelId")
-        elif data[0] == "video_id":
-            response = YT.videos().list(part="snippet", id=data[1]).execute()
-            channel_id = response.get("items", [{}])[0].get("snippet", {}).get("channelId")
-        else:
-            return None
-
-        channel_data = (
-            YT.channels().list(part="snippet", id=channel_id).execute().get("items", [{}])[0].get("snippet", {})
-        )
-        channel_name = channel_data.get("title", "")
-        return channel_id, channel_name
-    except HttpError as e:
-        logging.error(f"An error occurred: {e}")
+    if data[0] == "channel_id":
+        response = YT.channels().list(part="snippet", id=data[1]).execute()
+        channel_id = data[1]
+    elif data[0] == "user_name" or data[0] == "channel_name":
+        response = YT.search().list(type="channel", part="snippet", maxResults=1, q=data[1]).execute()
+        channel_id = response.get("items", [{}])[0].get("id", {}).get("channelId")
+    elif data[0] == "video_id":
+        response = YT.videos().list(part="snippet", id=data[1]).execute()
+        channel_id = response.get("items", [{}])[0].get("snippet", {}).get("channelId")
+    else:
         return None
+
+    channel_data = YT.channels().list(part="snippet", id=channel_id).execute().get("items", [{}])[0].get("snippet", {})
+    return channel_id, channel_data.get("title", "")
 
 
 def get_latest_video_data(channel_id: str) -> dict[str, str] | None:
