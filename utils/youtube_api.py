@@ -4,7 +4,8 @@ import os
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from parse_url import parse_youtube_url
+
+from utils.parse_url import parse_youtube_url
 
 load_dotenv()
 
