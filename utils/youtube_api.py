@@ -47,7 +47,7 @@ def get_channel_id_and_name(url: str) -> tuple[str, str] | None:
             YT.channels().list(part="snippet", id=channel_id).execute().get("items", [{}])[0].get("snippet", {})
         )
         channel_name = channel_data.get("title", "")
-        return channel_name, channel_id
+        return channel_id, channel_name
     except HttpError as e:
         logging.error(f"An error occurred: {e}")
         return None
