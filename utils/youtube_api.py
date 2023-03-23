@@ -25,7 +25,7 @@ def get_channel_id_and_name(url: str) -> tuple[str, str] | None:
 
     Возвращает:
     В случае успеха, кортеж из двух элементов: название канала и его идентификатор.
-    В случае ошибки, возвращает None.
+    В случае ошибки, возвращает `None`.
     """
     data = parse_youtube_url(url)
 
@@ -56,7 +56,39 @@ def get_channel_id_and_name(url: str) -> tuple[str, str] | None:
         return None
 
 
-if __name__ == "__main__":
+def get_latest_video_data(channel_id: str) -> dict[str, str] | None:
+    """
+    Получает данные о последнем видео на канале YouTube по его идентификатору.
+
+    Аргументы:
+    channel_id (строка) - идентификатор канала на YouTube.
+
+    Возвращает:
+    Словарь с данными о последнем видео на канале, включающий:
+        - "video_id" (строка) - идентификатор видео на YouTube.
+        - "title" (строка) - название видео.
+        - "description" (строка) - описание видео.
+        - "publish_time" (строка) - дата и время публикации видео на YouTube.
+
+    Если произошла ошибка, функция возвращает `None`.
+    """
+    request = YT.search().list(part="snippet", channelId=channel_id, type="video", order="date", maxResults=1)
+
+    try:
+        response = request.execute()
+        video_data = response["items"][0]["snippet"]
+        return {
+            "video_id": response["items"][0]["id"]["videoId"],
+            "title": video_data["title"],
+            "description": video_data["description"],
+            "publish_time": video_data["publishedAt"],
+        }
+    except HttpError as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+def _test_get_channel_id_and_name():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     urls = [
         "https://www.youtube.com/@theextensional",
@@ -72,3 +104,16 @@ if __name__ == "__main__":
             logging.info(f"Канал: {channel_info[0]}, id: {channel_info[1]}")
         else:
             logging.warning("Произошла ошибка при запросе.")
+
+
+def _test_get_latest_video_data():
+    ids = ["UCrV_cFYbUwpjSOPVJOjTufg", "UCuAXFkgsw1L7xaCfnd5JJOw"]
+
+    for id in ids:
+        data = get_latest_video_data(id)
+        print(data)
+
+
+if __name__ == "__main__":
+    _test_get_channel_id_and_name()
+    _test_get_latest_video_data()
