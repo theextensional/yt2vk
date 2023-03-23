@@ -102,10 +102,7 @@ def _test_get_channel_id_and_name():
 
 def _test_get_latest_video_data():
     ids = ["UCrV_cFYbUwpjSOPVJOjTufg", "UCuAXFkgsw1L7xaCfnd5JJOw"]
-
-    for id in ids:
-        data = get_latest_video_data(id)
-        print(data)
+    (print(data) for id in ids if (data := get_latest_video_data(id)))
 
 
 if __name__ == "__main__":
