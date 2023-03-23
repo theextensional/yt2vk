@@ -1,14 +1,5 @@
 import re
 
-
-class InvalidYoutubeUrlException(Exception):
-    """
-    Класс для обработки исключения при некорректном URL-адресе YouTube.
-    """
-
-    pass
-
-
 REGEX_PATTERNS = {
     "channel_id": re.compile(r"^[a-zA-Z0-9_-]{24}$"),
     "channel_url": re.compile(r"(?:(?:https?:)?//)?(?:www\.)?youtube\.com/channel/([a-zA-Z0-9_-]+)"),
@@ -20,7 +11,7 @@ REGEX_PATTERNS = {
 }
 
 
-def parse_youtube_url(url_or_id: str) -> tuple[str, str]:
+def parse_youtube_url(url_or_id: str) -> tuple[str, str] | None:
     """
     Функция для извлечения информации из URL-адреса YouTube.
 
@@ -33,9 +24,7 @@ def parse_youtube_url(url_or_id: str) -> tuple[str, str]:
         - "channel_id" (ID канала);
         - "user_name" (имя пользователя);
         - "channel_name" (название канала).
-
-    Исключения:
-    InvalidYoutubeUrlException: Вызывается, если переданный URL-адрес не является корректным URL-адресом YouTube.
+        Возвращает None, если переданный URL-адрес не соответствует шаблонам.
 
     Пример использования:
     >>> parse_youtube_url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
@@ -55,7 +44,7 @@ def parse_youtube_url(url_or_id: str) -> tuple[str, str]:
                 return "video_id", match.group(1)
             else:
                 return data_type, match.group(1)
-    raise InvalidYoutubeUrlException("Некорректный URL для YouTube")
+    return None
 
 
 if __name__ == "__main__":
@@ -71,8 +60,9 @@ if __name__ == "__main__":
     ]
 
     for url in urls:
-        try:
-            data_type, data = parse_youtube_url(url)
+        parsed_data = parse_youtube_url(url)
+        if parsed_data is None:
+            print(f"URL: {url}, Ошибка: некорректный URL")
+        else:
+            data_type, data = parsed_data
             print(f"URL: {url}, Тип данных: {data_type}, Данные: {data}")
-        except InvalidYoutubeUrlException as e:
-            print(f"URL: {url}, Ошибка: {e}")

@@ -1,11 +1,10 @@
 import logging
 import os
-from typing import Tuple, Union
 
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from parse_url import InvalidYoutubeUrlException, parse_youtube_url
+from parse_url import parse_youtube_url
 
 load_dotenv()
 
@@ -13,7 +12,7 @@ API_KEY = os.getenv("API_KEY")
 YT = build("youtube", "v3", developerKey=API_KEY)
 
 
-def get_channel_id_and_name(url: str) -> Union[Tuple[str, str], None]:
+def get_channel_id_and_name(url: str) -> tuple[str, str] | None:
     """
     Возвращает информацию о канале YouTube по его URL.
 
@@ -23,26 +22,22 @@ def get_channel_id_and_name(url: str) -> Union[Tuple[str, str], None]:
     Возвращает:
     В случае успеха, кортеж из двух элементов: название канала и его идентификатор.
     В случае ошибки, возвращает None.
-
-    Исключения:
-    InvalidYoutubeUrlException -- если передан некорректный URL для YouTube.
-
     """
-    try:
-        data_type, data = parse_youtube_url(url)
-    except InvalidYoutubeUrlException:
+    data = parse_youtube_url(url)
+
+    if data is None:
         logging.warning(f"Некорректный URL для YouTube: {url}")
         return None
 
     try:
-        if data_type == "channel_id":
-            response = YT.channels().list(part="snippet", id=data).execute()
-            channel_id = data
-        elif data_type == "user_name":
-            response = YT.search().list(type="channel", part="snippet", maxResults=1, q=data).execute()
+        if data[0] == "channel_id":
+            response = YT.channels().list(part="snippet", id=data[1]).execute()
+            channel_id = data[1]
+        elif data[0] == "user_name":
+            response = YT.search().list(type="channel", part="snippet", maxResults=1, q=data[1]).execute()
             channel_id = response.get("items", [{}])[0].get("id", {}).get("channelId")
-        elif data_type == "video_id":
-            response = YT.videos().list(part="snippet", id=data).execute()
+        elif data[0] == "video_id":
+            response = YT.videos().list(part="snippet", id=data[1]).execute()
             channel_id = response.get("items", [{}])[0].get("snippet", {}).get("channelId")
         else:
             return None
