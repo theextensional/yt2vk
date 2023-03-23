@@ -24,7 +24,8 @@ def parse_youtube_url(url_or_id: str) -> tuple[str, str] | None:
         - "channel_id" (ID канала);
         - "user_name" (имя пользователя);
         - "channel_name" (название канала).
-        Возвращает None, если переданный URL-адрес не соответствует шаблонам.
+
+    Возвращает `None`, если переданный URL-адрес не соответствует шаблонам.
 
     Пример использования:
     >>> parse_youtube_url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
