@@ -46,7 +46,8 @@ def get_channel_id_and_name(url: str) -> tuple[str, str] | None:
         return None
 
     channel_data = YT.channels().list(part="snippet", id=channel_id).execute().get("items", [{}])[0].get("snippet", {})
-    return channel_id, channel_data.get("title", "")
+    channel_name = channel_data.get("title", "")
+    return channel_id, channel_name
 
 
 def get_latest_video_data(channel_id: str) -> dict[str, str] | None:
