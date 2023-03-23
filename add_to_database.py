@@ -23,7 +23,7 @@ def add_to_database(db_conn: sqlite3.Connection, url: str):
 
     # Проверяем, существует ли уже запись с таким channel_id
     cursor = db_conn.cursor()
-    cursor.execute("SELECT channel_id FROM youtube_data WHERE channel_id = ?", (channel_id,))
+    cursor.execute("SELECT channel_id FROM subscriptions WHERE channel_id = ?", (channel_id,))
     existing_record = cursor.fetchone()
     if existing_record:
         logging.info(f'Запись с channel_id "{channel_id}" уже существует в базе данных.')
@@ -35,7 +35,7 @@ def add_to_database(db_conn: sqlite3.Connection, url: str):
         return
 
     # Сохраняем данные в базу данных
-    cursor.execute("INSERT INTO youtube_data (channel_id, channel_name) VALUES (?, ?)", (channel_id, channel_name))
+    cursor.execute("INSERT INTO subscriptions (channel_id, channel_name) VALUES (?, ?)", (channel_id, channel_name))
     db_conn.commit()
     logging.info(f'Данные для канала "{channel_name}" успешно добавлены в базу данных.')
 
@@ -59,10 +59,10 @@ if __name__ == "__main__":
     with db_conn:
         # Создаем таблицу, если она не существует
         db_conn.execute(
-            "CREATE TABLE IF NOT EXISTS youtube_data ("
+            "CREATE TABLE IF NOT EXISTS subscriptions ("
             "channel_id TEXT PRIMARY KEY,"
             "channel_name TEXT,"
-            "last_video_date DATETIME DEFAULT NULL"
+            "last_video_date DATETIME DEFAULT (datetime('now'))"
             ")"
         )
 
