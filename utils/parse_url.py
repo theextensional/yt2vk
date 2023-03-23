@@ -61,9 +61,8 @@ if __name__ == "__main__":
     ]
 
     for url in urls:
-        parsed_data = parse_youtube_url(url)
-        if parsed_data is None:
-            print(f"URL: {url}, Ошибка: некорректный URL")
-        else:
+        if parsed_data := parse_youtube_url(url):
             data_type, data = parsed_data
             print(f"URL: {url}, Тип данных: {data_type}, Данные: {data}")
+        else:
+            print(f"URL: {url}, Ошибка: некорректный URL")
