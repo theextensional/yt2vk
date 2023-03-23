@@ -21,7 +21,7 @@ def get_channel_id_and_name(url: str) -> tuple[str, str] | None:
     Возвращает информацию о канале YouTube по его URL.
 
     Аргументы:
-    url -- URL канала YouTube в виде строки.
+    url (str): URL-адрес или ID YouTube-видео, канала или пользователя.
 
     Возвращает:
     В случае успеха, кортеж из двух элементов: название канала и его идентификатор.
@@ -37,7 +37,7 @@ def get_channel_id_and_name(url: str) -> tuple[str, str] | None:
         if data[0] == "channel_id":
             response = YT.channels().list(part="snippet", id=data[1]).execute()
             channel_id = data[1]
-        elif data[0] == "user_name":
+        elif data[0] == "user_name" or data[0] == "channel_name":
             response = YT.search().list(type="channel", part="snippet", maxResults=1, q=data[1]).execute()
             channel_id = response.get("items", [{}])[0].get("id", {}).get("channelId")
         elif data[0] == "video_id":
@@ -61,6 +61,7 @@ if __name__ == "__main__":
     urls = [
         "https://www.youtube.com/@theextensional",
         "https://www.youtube.com/channel/UCrV_cFYbUwpjSOPVJOjTufg",
+        "https://www.youtube.com/c/Экстенсиональный",
         "https://youtu.be/dQw4w9WgXcQ",
     ]
 
