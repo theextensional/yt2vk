@@ -1,11 +1,14 @@
 import logging
 import os
+import sys
 
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from utils.parse_url import parse_youtube_url
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.parse_url import parse_youtube_url  # noqa: 402
 
 load_dotenv()
 
