@@ -14,6 +14,20 @@ YT = build("youtube", "v3", developerKey=API_KEY)
 
 
 def get_channel_id_and_name(url: str) -> Union[Tuple[str, str], None]:
+    """
+    Возвращает информацию о канале YouTube по его URL.
+
+    Аргументы:
+    url -- URL канала YouTube в виде строки.
+
+    Возвращает:
+    В случае успеха, кортеж из двух элементов: название канала и его идентификатор.
+    В случае ошибки, возвращает None.
+
+    Исключения:
+    InvalidYoutubeUrlException -- если передан некорректный URL для YouTube.
+
+    """
     try:
         data_type, data = parse_youtube_url(url)
     except InvalidYoutubeUrlException:
