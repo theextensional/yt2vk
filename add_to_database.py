@@ -2,7 +2,7 @@ import logging
 import sqlite3
 
 from utils.database_utils import create_subscriptions_table
-from utils.youtube_api import get_channel_id_and_name
+from utils.youtube import get_channel_info
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
@@ -32,7 +32,7 @@ def add_to_database(db_conn: sqlite3.Connection, url: str) -> None:
     db_conn (sqlite3.Connection): Объект подключения к базе данных.
     url (str): URL-адрес или ID YouTube-видео, канала или пользователя.
     """
-    result = get_channel_id_and_name(url)
+    result = get_channel_info(url)
     if result is None:
         logging.warning(f'Не удалось получить информацию о канале для URL-адреса "{url}".')
         return

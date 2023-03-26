@@ -10,13 +10,23 @@ REGEX_PATTERNS = {
     "user_name": re.compile(r"^(?:https?:\/\/(?:www\.)?youtube\.com\/)?(?:@)?([a-zA-Z0-9_-]+)$"),
 }
 
+DATA_TYPE_MAP = {
+    "channel_name": "https://www.youtube.com/c/{}",
+    "channel_url": "https://www.youtube.com/channel/{}",
+    "channel_id": "https://www.youtube.com/channel/{}",
+    "video_url": "https://www.youtube.com/watch?v={}",
+    "video_id": "https://www.youtube.com/watch?v={}",
+    "short_url": "https://www.youtube.com/watch?v={}",
+    "user_name": "https://www.youtube.com/@{}",
+}
 
-def parse_youtube_url(url_or_id: str) -> tuple[str, str] | None:
+
+def parse_youtube_url(url: str):
     """
     Функция для извлечения информации из URL-адреса YouTube.
 
     Аргументы:
-    url_or_id (str): URL-адрес или ID YouTube-видео, канала или пользователя.
+    url (str): URL-адрес или ID YouTube-видео, канала или пользователя.
 
     Возвращает:
     tuple: Кортеж с типом данных и соответствующим значением. Возможные типы данных:
@@ -36,15 +46,12 @@ def parse_youtube_url(url_or_id: str) -> tuple[str, str] | None:
     ('user_name', 'theextensional')
     """
     for data_type, pattern in REGEX_PATTERNS.items():
-        if match := pattern.match(url_or_id):
-            if data_type == "channel_url":
-                return "channel_id", match.group(1)
-            elif data_type == "channel_id":
-                return data_type, url_or_id
-            elif data_type == "video_url" or data_type == "short_url":
-                return "video_id", match.group(1)
+        if match := pattern.match(url):
+            if data_type in ["channel_id", "video_id"]:
+                data = DATA_TYPE_MAP.get(data_type, "").format(match.group(0))
             else:
-                return data_type, match.group(1)
+                data = DATA_TYPE_MAP.get(data_type, "").format(match.group(1))
+            return data if data else None
     return None
 
 
@@ -61,8 +68,7 @@ if __name__ == "__main__":
     ]
 
     for url in urls:
-        if parsed_data := parse_youtube_url(url):
-            data_type, data = parsed_data
-            print(f"URL: {url}, Тип данных: {data_type}, Данные: {data}")
+        if data := parse_youtube_url(url):
+            print(f"URL: {url}, Данные: {data}")
         else:
             print(f"URL: {url}, Ошибка: некорректный URL")

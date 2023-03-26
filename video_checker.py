@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from utils.database_utils import get_subscriptions, update_last_video_date
-from utils.youtube_api import get_latest_video_data
+from utils.youtube import get_latest_video_data
 
 
 def check_new_videos() -> None:
@@ -23,11 +23,15 @@ def check_new_videos() -> None:
         if not latest_video:
             continue
 
-        publish_time_dt = datetime.strptime(latest_video["publish_time"], "%Y-%m-%dT%H:%M:%SZ")
+        publish_time_dt = (
+            datetime.strptime(latest_video["published"], "%Y-%m-%dT%H:%M:%S%z")
+            .astimezone(timezone.utc)
+            .replace(tzinfo=None)
+        )
         last_video_date_dt = datetime.strptime(last_video_date, "%Y-%m-%d %H:%M:%S")
+
         if publish_time_dt > last_video_date_dt:
-            video_url = f"https://youtu.be/{latest_video['video_id']}"
-            print(f"New video on {channel_name}: {video_url}")
+            print(f"New video on {channel_name}: {latest_video['link']}")
             update_last_video_date(channel_id, publish_time_dt.strftime("%Y-%m-%d %H:%M:%S"))
         else:
             nowtime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

@@ -2,7 +2,7 @@ import time
 
 from video_checker import check_new_videos
 
-CHECK_INTERVAL = 300
+CHECK_INTERVAL = 60
 
 
 def main():
