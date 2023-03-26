@@ -1,6 +1,7 @@
 import logging
 import sqlite3
 
+from utils.database_utils import create_subscriptions_table
 from utils.youtube_api import get_channel_id_and_name
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
@@ -62,13 +63,7 @@ def main():
     DATABASE_URL = str(os.getenv("DATABASE_URL"))
 
     with sqlite3.connect(DATABASE_URL) as db_conn:
-        db_conn.execute(
-            "CREATE TABLE IF NOT EXISTS subscriptions ("
-            "channel_id TEXT PRIMARY KEY,"
-            "channel_name TEXT,"
-            "last_video_date DATETIME DEFAULT (datetime('now'))"
-            ")"
-        )
+        create_subscriptions_table()
 
         urls = [
             "https://www.youtube.com/@theextensional",

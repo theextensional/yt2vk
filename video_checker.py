@@ -11,7 +11,13 @@ def check_new_videos() -> None:
 
     :return: None
     """
-    for channel in get_subscriptions():
+    subscriptions = get_subscriptions()
+
+    if not subscriptions:
+        print("Запустите add_to_database.py, чтобы добавить первые записи в базу данных.")
+        exit(1)
+
+    for channel in subscriptions:
         channel_id, channel_name, last_video_date = channel
         latest_video = get_latest_video_data(channel_id)
         if not latest_video:
@@ -23,6 +29,9 @@ def check_new_videos() -> None:
             video_url = f"https://youtu.be/{latest_video['video_id']}"
             print(f"New video on {channel_name}: {video_url}")
             update_last_video_date(channel_id, publish_time_dt.strftime("%Y-%m-%d %H:%M:%S"))
+        else:
+            nowtime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"[{nowtime}] No new video on {channel_name}")
 
 
 if __name__ == "__main__":

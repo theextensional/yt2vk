@@ -33,11 +33,34 @@ def get_subscriptions() -> list[tuple[str, str, str]]:
     """
     with sqlite3.connect(DATABASE_URL) as conn:
         cursor = conn.cursor()
-        query = "SELECT channel_id, channel_name, last_video_date FROM subscriptions"
-        cursor.execute(query)
+        try:
+            query = "SELECT channel_id, channel_name, last_video_date FROM subscriptions"
+            cursor.execute(query)
+        except sqlite3.OperationalError:
+            print("Запустите add_to_database.py, чтобы добавить первые записи в базу данных.")
+            exit(1)
         return cursor.fetchall()
 
 
+def create_subscriptions_table() -> None:
+    """
+    Создает таблицу подписок в базе данных, если она не существует.
+    """
+    print("Создание таблицы подписок...")
+    with sqlite3.connect(DATABASE_URL) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS subscriptions ("
+            "channel_id TEXT PRIMARY KEY,"
+            "channel_name TEXT,"
+            "last_video_date DATETIME DEFAULT (datetime('now'))"
+            ")"
+        )
+        conn.commit()
+
+
 if __name__ == "__main__":
+    # Создаем таблицу подписок, если она не существует
+    create_subscriptions_table()
     # Обновляем дату последнего видео
     update_last_video_date("UCrV_cFYbUwpjSOPVJOjTufg", "2023-03-19 21:31:10")
