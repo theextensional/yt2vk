@@ -1,10 +1,18 @@
 import logging
+import os
 import sqlite3
+
+from dotenv import load_dotenv
 
 from utils.database_utils import create_subscriptions_table
 from utils.youtube import get_channel_info
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
+
+load_dotenv()
+DATABASE_URL = str(os.getenv("DATABASE_URL"))
+if DATABASE_URL is None:
+    raise ValueError("Not set DATABASE_URL в файле .env")
 
 
 def check_channel_exists(db_conn: sqlite3.Connection, channel_id: str) -> bool:
@@ -12,73 +20,69 @@ def check_channel_exists(db_conn: sqlite3.Connection, channel_id: str) -> bool:
     Проверяет, существует ли уже запись с таким channel_id.
 
     Аргументы:
-    db_conn (sqlite3.Connection): Объект подключения к базе данных.
-    channel_id (str): ID YouTube-канала.
+        `db_conn` (sqlite3.Connection): Объект подключения к базе данных.
+        `channel_id` (str): ID YouTube-канала.
 
     Возвращает:
-    bool: Флаг, указывающий, существует ли уже запись с таким channel_id.
+        `bool`: Флаг, указывающий, существует ли уже запись с таким `channel_id`.
     """
     cursor = db_conn.cursor()
     cursor.execute("SELECT channel_id FROM subscriptions WHERE channel_id = ?", (channel_id,))
-    existing_record = cursor.fetchone()
-    return bool(existing_record)
+    return bool(cursor.fetchone())
 
 
-def add_to_database(db_conn: sqlite3.Connection, url: str) -> None:
+def add_to_database(db_conn: sqlite3.Connection, urls: str | list[str]) -> None:
     """
-    Добавляет в базу данных новую строку с информацией о видео, канале или пользователе YouTube.
+    Добавляет в базу данных новые строки с информацией о видео, канале или пользователе YouTube.
 
     Аргументы:
-    db_conn (sqlite3.Connection): Объект подключения к базе данных.
-    url (str): URL-адрес или ID YouTube-видео, канала или пользователя.
+        `db_conn` (sqlite3.Connection): Объект подключения к базе данных.
+        `urls` (str | list[str]): URL-адрес или список URL-адресов YouTube-видео, канала или пользователя.
     """
-    result = get_channel_info(url)
-    if result is None:
-        logging.warning(f'Не удалось получить информацию о канале для URL-адреса "{url}".')
-        return
-    channel_id, channel_name = result
+    urls = [urls] if isinstance(urls, str) else urls
 
-    if check_channel_exists(db_conn, channel_id):
-        logging.info(f'Запись с channel_id "{channel_id}" уже существует в базе данных.')
-        return
+    try:
+        channel_info = [info for info in [get_channel_info(url) for url in urls] if info is not None]
+        if not channel_info:
+            logging.warning("Не удалось получить ID или название каналов.")
+            return
 
-    if not channel_id or not channel_name:
-        logging.error(f'Не удалось получить ID или название канала для URL-адреса "{url}".')
-        return
+        existing_channels = [channel_id for channel_id, _ in channel_info if check_channel_exists(db_conn, channel_id)]
 
-    cursor = db_conn.cursor()
-    cursor.execute(
-        "INSERT OR IGNORE INTO subscriptions (channel_id, channel_name) VALUES (?, ?)", (channel_id, channel_name)
-    )
-    db_conn.commit()
-    logging.info(f'Данные для канала "{channel_name}" успешно добавлены в базу данных.')
+        new_channel_info = [
+            (channel_id, channel_name)
+            for channel_id, channel_name in channel_info
+            if channel_id not in existing_channels
+        ]
+
+        if not new_channel_info:
+            logging.warning("Не удалось получить информацию о каналах.")
+            return
+
+        cursor = db_conn.cursor()
+        cursor.executemany(
+            "INSERT OR IGNORE INTO subscriptions (channel_id, channel_name) VALUES (?, ?)", new_channel_info
+        )
+        db_conn.commit()
+
+        for _, channel_name in new_channel_info:
+            logging.info(f'Данные для канала "{channel_name}" успешно добавлены в базу данных.')
+
+        for channel_id in existing_channels:
+            logging.info(f'Запись с channel_id "{channel_id}" уже существует в базе данных.')
+    except Exception as e:
+        logging.error(f"Ошибка при добавлении данных: {e}")
 
 
-def main():
-    import os
-
-    from dotenv import load_dotenv
-
-    load_dotenv()
-    DATABASE_URL = str(os.getenv("DATABASE_URL"))
-
+def test():
     with sqlite3.connect(DATABASE_URL) as db_conn:
         create_subscriptions_table()
 
-        urls = [
-            "https://www.youtube.com/@theextensional",
-            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            "https://youtu.be/dQw4w9WgXcQ",
-            "https://www.youtube.com/channel/UCrV_cFYbUwpjSOPVJOjTufg",
-            "https://www.youtube.com/c/Экстенсиональный",
-            "UCrV_cFYbUwpjSOPVJOjTufg",
-            "@theextensional",
-            "https://www.google.com/",
-        ]
+        with open("urls.txt", "r") as f:
+            urls = f.readlines()
 
-        for url in urls:
-            add_to_database(db_conn, url)
+        add_to_database(db_conn, urls)
 
 
 if __name__ == "__main__":
-    main()
+    test()
