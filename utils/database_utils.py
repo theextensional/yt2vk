@@ -1,3 +1,4 @@
+import logging
 import os
 import sqlite3
 
@@ -5,6 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 DATABASE_URL = str(os.getenv("DATABASE_URL"))
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 
 def update_last_video_date(channel_id, new_date) -> None:
@@ -20,6 +23,8 @@ def update_last_video_date(channel_id, new_date) -> None:
         query = "UPDATE subscriptions SET last_video_date = ? WHERE channel_id = ?"
         cursor.execute(query, (new_date, channel_id))
         conn.commit()
+
+    logging.info(f"Обновлена дата последнего видео для канала {channel_id}: {new_date}")
 
 
 def get_subscriptions() -> list[tuple[str, str, str]]:
