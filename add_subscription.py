@@ -74,7 +74,7 @@ def add_to_database(db_conn: sqlite3.Connection, urls: str | list[str]) -> None:
         logging.error(f"Ошибка при добавлении данных: {e}")
 
 
-def test():
+def first_run():
     with sqlite3.connect(DATABASE_URL) as db_conn:
         create_subscriptions_table()
 
@@ -85,4 +85,4 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
+    first_run()
