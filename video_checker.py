@@ -24,7 +24,7 @@ def check_new_videos() -> list[Video]:
             if publish_time_dt > last_video_date_dt:
                 logging.info(
                     f"Новое видео на канале {channel_name}: {latest_video.title} {latest_video.link} "
-                    f"({publish_time_dt:%d.%m.%Y %H:%M:%S} UTC)"
+                    f"({publish_time_dt:%d.%m.%Y %H:%M:%S} UTC)",
                 )
                 update_last_video_date(channel_id, publish_time_dt.isoformat())
                 new_videos.append(latest_video)

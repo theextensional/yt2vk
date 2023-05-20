@@ -65,7 +65,5 @@ def create_subscriptions_table() -> None:
 
 
 if __name__ == "__main__":
-    # Создаем таблицу подписок, если она не существует
     create_subscriptions_table()
-    # Обновляем дату последнего видео
     update_last_video_date("UCrV_cFYbUwpjSOPVJOjTufg", "2023-03-19 21:31:10")

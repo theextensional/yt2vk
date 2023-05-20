@@ -61,7 +61,8 @@ def add_to_database(db_conn: sqlite3.Connection, urls: str | list[str]) -> None:
 
         cursor = db_conn.cursor()
         cursor.executemany(
-            "INSERT OR IGNORE INTO subscriptions (channel_id, channel_name) VALUES (?, ?)", new_channel_info
+            "INSERT OR IGNORE INTO subscriptions (channel_id, channel_name) VALUES (?, ?)",
+            new_channel_info,
         )
         db_conn.commit()
 
