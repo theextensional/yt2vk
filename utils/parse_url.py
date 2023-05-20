@@ -51,7 +51,7 @@ def parse_youtube_url(url: str):
                 data = DATA_TYPE_MAP.get(data_type, "").format(match.group(0))
             else:
                 data = DATA_TYPE_MAP.get(data_type, "").format(match.group(1))
-            return data if data else None
+            return data or None
     return None
 
 

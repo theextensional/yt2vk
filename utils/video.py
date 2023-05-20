@@ -18,9 +18,11 @@ class Video:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Video):
             return False
-        return (
-            self.channel_name == other.channel_name
-            and self.link == other.link
-            and self.title == other.title
-            and self.published == other.published
+        return all(
+            {
+                self.channel_name == other.channel_name,
+                self.link == other.link,
+                self.title == other.title,
+                self.published == other.published,
+            }
         )
