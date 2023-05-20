@@ -78,11 +78,9 @@ if __name__ == "__main__":
         urls = f.readlines()
 
     for url in urls:
-        channel_info = get_channel_info(url)
-        if channel_info:
+        if channel_info := get_channel_info(url):
             channel_id, channel_name = channel_info
-            latest_video = get_latest_video_data(channel_id)
-            if latest_video:
+            if latest_video := get_latest_video_data(channel_id):
                 logging.info(f"Канал: {channel_name}, id: {channel_id}. Последнее видео: {latest_video.title}")
             else:
                 logging.warning("Не удалось получить информацию о последнем видео.")
