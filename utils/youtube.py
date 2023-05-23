@@ -38,7 +38,7 @@ def get_channel_info(url: str) -> tuple[str, str] | None:
         return None
 
     soup = BeautifulSoup(response.content, "html.parser")
-    channel_id = soup.find("meta", {"itemprop": "channelId"})["content"]  # type: ignore
+    channel_id = soup.find("meta", {"itemprop": "identifier"})["content"]  # type: ignore
     channel_name = soup.find("link", {"itemprop": "name"})["content"]  # type: ignore
 
     return str(channel_id), str(channel_name)
